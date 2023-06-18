@@ -1,0 +1,100 @@
+#include <string.h>
+#include <stdlib.h>
+#include "deck.h"
+
+/**
+ * compare_cards - compare two cards
+ * @a: pointer to first card
+ * @b: pointer to second card
+ *
+ * Return: negative if a < b, 0 if a == b, positive if a > b
+ */
+int compare_cards(const void *a, const void *b)
+{
+	const card_t *card_a = *(const card_t **)a;
+	const card_t *card_b = *(const card_t **)b;
+
+	if (card_a->kind != card_b->kind)
+		return (card_a->kind - card_b->kind);
+
+	if (card_a->value == card_b->value)
+		return (0);
+
+	if (strcmp(card_a->value, "Ace") == 0)
+		return (-1);
+
+	if (strcmp(card_b->value, "Ace") == 0)
+		return (1);
+
+	if (strcmp(card_a->value, "King") == 0)
+		return (1);
+
+	if (strcmp(card_b->value, "King") == 0)
+		return (-1);
+
+	return (card_a->value[0] - card_b->value[0]);
+}
+
+/**
+ * swap_nodes - swap two nodes in a doubly linked list
+ * @a: pointer to first node
+ * @b: pointer to second node
+ */
+void swap_nodes(deck_node_t **a, deck_node_t **b)
+{
+	deck_node_t *prev_a = (*a)->prev;
+	deck_node_t *next_a = (*a)->next;
+	deck_node_t *prev_b = (*b)->prev;
+	deck_node_t *next_b = (*b)->next;
+
+	if (prev_a)
+		prev_a->next = *b;
+
+	(*b)->prev = prev_a;
+	(*b)->next = next_a;
+
+	if (next_a)
+		next_a->prev = *b;
+
+	if (prev_b)
+		prev_b->next = *a;
+
+	(*a)->prev = prev_b;
+	(*a)->next = next_b;
+
+	if (next_b)
+		next_b->prev = *a;
+}
+
+/**
+ * sort_deck - sort a deck of cards
+ * @deck: pointer to head of doubly linked list of cards
+ */
+void sort_deck(deck_node_t **deck)
+{
+	int i, count = 0;
+	deck_node_t *node = *deck;
+	card_t *cards[52];
+
+	while (node)
+	{
+		cards[count++] = (card_t *)node->card;
+		node = node->next;
+	}
+
+	qsort(cards, count, sizeof(card_t *), compare_cards);
+
+	for (i = 0; i < count; i++)
+	{
+		if (i > 0 && compare_cards(&cards[i - 1], &cards[i]) == 0)
+			return;
+
+		node = *deck;
+
+		while (node->card != &cards[i])
+			node = node->next;
+
+		if (node != *deck)
+			swap_nodes(deck, &node);
+	}
+}
